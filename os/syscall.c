@@ -36,6 +36,14 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 	return 0;
 }
 
+int sys_task_info(TaskInfo *ti){
+	struct proc *p = curr_proc();
+	ti->time = (get_cycle()-p->startcycle)*1000/CPU_FREQ;
+	ti->status = Running;
+	memmove(ti->syscall_times, p->syscall_times, sizeof(p->syscall_times));
+	return 0;
+}
+
 /*
 * LAB1: you may need to define sys_task_info here
 */
@@ -53,6 +61,8 @@ void syscall()
 	/*
 	* LAB1: you may need to update syscall counter for task info here
 	*/
+	curr_proc()->syscall_times[id] ++;
+	
 	switch (id) {
 	case SYS_write:
 		ret = sys_write(args[0], (char *)args[1], args[2]);
@@ -66,6 +76,9 @@ void syscall()
 	case SYS_gettimeofday:
 		ret = sys_gettimeofday((TimeVal *)args[0], args[1]);
 		break;
+	case SYS_task_info:
+                ret = sys_task_info((TaskInfo *)args[0]);
+                break;
 	/*
 	* LAB1: you may need to add SYS_taskinfo case here
 	*/
